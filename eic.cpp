@@ -140,7 +140,7 @@ int EIC::Comm::init(void)
 	unsigned _ugain = this->voltageGain;
 	unsigned _igainA = this->currentGain1;
 	unsigned _igainB = 0; // Unused on single split-phase
-	unsigned _igainC = this->currentGain1;
+	unsigned _igainC = this->currentGain2;
 	unsigned vSagTh;
 	unsigned sagV;
 	unsigned FreqHiThresh;
