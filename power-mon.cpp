@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
 	g_run = true;
 
 	eic.voltageGain = 3778;
-	eic.currentGain1 = 4225;
-	eic.currentGain2 = 4225;
+	eic.currentGain1 = 2523; // Kitchen
+	eic.currentGain2 = 3999; // House
 
 	ret = eic.begin("/dev/spidev0.0");
 	if (ret)
