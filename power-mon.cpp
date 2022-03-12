@@ -6,10 +6,14 @@
 #include <thread>
 
 #include "eic.h"
+#include "report.h"
+#include "time.h"
 
-using namespace std::chrono_literals;
+using namespace power;
 
 bool g_run = false;
+
+constexpr std::chrono::milliseconds TICK_PERIOD = 1000ms;
 
 void handle_sigint(int sig)
 {
@@ -20,9 +24,19 @@ void handle_sigint(int sig)
 int main(int argc, char *argv[])
 {
 	EIC::Comm eic;
-	unsigned reg;
-	unsigned val;
+	Report report;
 	int ret;
+
+	report.channels = {
+		{.topic = "jwatts/power/kitchen"},
+		{.topic = "jwatts/power/house"},
+	};
+	Report::channel_t &kitchen = report.channels[0];
+	Report::channel_t &house = report.channels[1];
+	if (report.begin()) {
+		fprintf(stderr, "Failed to initialize report\n");
+		return 1;
+	}
 
 	signal(SIGINT, handle_sigint);
 	g_run = true;
@@ -32,26 +46,41 @@ int main(int argc, char *argv[])
 	eic.currentGain2 = 3999; // House
 
 	ret = eic.begin("/dev/spidev0.0");
-	if (ret)
+	if (ret) {
+		fprintf(stderr, "Failed to begin eic\n");
 		return 1;
+	}
 
 	ret = eic.init();
-	if (ret)
+	if (ret) {
+		fprintf(stderr, "Failed to init eic\n");
 		return 1;
+	}
 
-	std::this_thread::sleep_for(1s);
+	power::timestamp_t next_tick = power::clock_t::now();
 
 	while (g_run) {
-		double v[] = { eic.GetLineVoltage(0), eic.GetLineVoltage(2) };
-		double c[] = { eic.GetLineCurrent(0), eic.GetLineCurrent(2) };
-		double t = eic.GetTemperature();
-		double f = eic.GetFrequency();
-		printf("Voltage: %f/%f V\n", v[0], v[1]);
-		printf("Current: %f/%f A\n", c[0], c[1]);
-		printf("Temp: %f C\n", t);
-		printf("Freq: %f Hz\n", f);
-		std::this_thread::sleep_for(1s);
+		if (power::clock_t::now() >= next_tick) {
+			printf("power tick\n");
+			power::timestamp_t timestamp = power::clock_t::now();
+			double v[] = { eic.GetLineVoltage(0), eic.GetLineVoltage(2) };
+			double c[] = { eic.GetLineCurrent(0), eic.GetLineCurrent(2) };
+			// double t = eic.GetTemperature();
+			// double f = eic.GetFrequency();
+			// printf("Voltage: %f/%f V\n", v[0], v[1]);
+			// printf("Current: %f/%f A\n", c[0], c[1]);
+			// printf("Temp: %f C\n", t);
+			// printf("Freq: %f Hz\n", f);
+			kitchen.push({timestamp, v[0], c[0], v[0]*c[0]});
+			house.push({timestamp, v[1], c[1], v[1]*c[1]});
+			while (next_tick < power::clock_t::now())
+				next_tick += TICK_PERIOD;
+		}
+		report.poll();
+		std::this_thread::sleep_for(100ms);
 	}
-	
+
+	report.end();
+
 	return 0;
 }
