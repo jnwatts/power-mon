@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
 	int ret;
 
 	report.channels = {
-		{.topic = "jwatts/power/kitchen"},
-		{.topic = "jwatts/power/house"},
+		{.topic = "MQTT/TOPIC/PATH/kitchen"},
+		{.topic = "MQTT/TOPIC/PATH/house"},
 	};
 	Report::channel_t &kitchen = report.channels[0];
 	Report::channel_t &house = report.channels[1];

@@ -1,0 +1,47 @@
+<html class="dark-mode">
+<head>
+<title>Power-Mon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style type="text/css">
+    .meter {
+        width: 18em;
+        display: inline-block;
+    }
+    .meter .title {
+        text-align: center;
+        font-size: 1.5em;
+        font-weight: bold;
+        font-family: sans-serif;
+    }
+    .meter .value {
+        text-align: center;
+        font-size: 1.5em;
+        font-weight: bold;
+        font-family: sans-serif;
+    }
+    .meter .canvas {
+        width: 100%;
+    }
+    div#stale {
+        position: absolute;
+        left: 5px;
+        top: 5px;
+        width: 5px;
+        height: 5px;
+        background: green;
+        z-index: 1;
+    }
+    body {
+        background: #333;
+        color: lightgray;
+    }
+</style>
+</head>
+<body class="darkmode">
+    <div id='stale'>&nbsp;</div>
+    <div id='kitchen_power' class='meter power'></div>
+    <div id='house_power' class='meter power'></div><br>
+    <br>
+    <script type="module" src="./index.js"></script>
+</body>
+</html>

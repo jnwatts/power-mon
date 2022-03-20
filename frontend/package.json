@@ -1,0 +1,26 @@
+{
+  "name": "power-mon",
+  "version": "0.0.1",
+  "license": "MIT",
+  "source": "src/index.html",
+  "dependencies": {
+    "chart.js": "^3.7.1",
+    "gaugeJS": "^1.3.7",
+    "jquery": "^3.6.0"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "https-browserify": "^1.0.0",
+    "parcel": "^2.3.2",
+    "process": "^0.11.10",
+    "querystring-es3": "^0.2.1",
+    "stream-http": "^3.2.0",
+    "url": "^0.11.0"
+  },
+  "@parcel/bundler-default": {
+    "minBundles": 1,
+    "minBundleSize": 3000,
+    "maxParallelRequests": 20
+  }
+}
