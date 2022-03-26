@@ -1,0 +1,3 @@
+[submodule "aggregator/mysqlpp"]
+	path = aggregator/mysqlpp
+	url = https://github.com/tangentsoft/mysqlpp.git
