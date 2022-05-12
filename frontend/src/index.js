@@ -1,7 +1,10 @@
 // import $ from 'npm:jquery';
 (function (global) { 
 var gauges = [];
-  function update_ch(ch_id, title, val) {
+var charts = [];
+var latest = (Date.now()-60*60*1000);
+  function update_gauges(ch_id, data) {
+    var val = data.power;
     if (gauges[ch_id] !== undefined) {
       gauges[ch_id].set(val);
       return;
@@ -64,16 +67,91 @@ var gauges = [];
     gauges[ch_id] = gauge;
   }
 
-  function update_latest() {
-    $.ajax('./api/latest.php').done((data) => {
-      for (var name in data) {
-        var ch = data[name];
-        if ('name' in ch) {
-          update_ch(ch.ch_id, ch.name, ch.power);
+  function update_chart_chartjs(ch_id, data) {
+    if (charts[ch_id] !== undefined) {
+      // charts[ch_id].set(val);
+      return;
+    }
+
+    var obj_id = (ch_id == 1 ? "kitchen_power_day" : "house_power_day");
+    var title = (ch_id == 1 ? "Kitchen/Bath" : "House");
+
+    var amps = (ch_id == 1 ? 20 : 15);
+    var max_power = (120*amps);
+    var safe_power = (max_power*0.8);
+    var critical_power = (max_power*1.10);
+
+    var target = $('#'+obj_id);
+    var o_title = $('<div />');
+    var o_canvas = $('<canvas />');
+    o_title.addClass('title');
+    o_canvas.addClass('canvas');
+    target.append(o_title);
+    target.append(o_canvas);
+
+    var _d = data.map((d) => {
+      return {x: d.timestamp/1000.0, y: d.power, };
+    });
+
+    var chart = new Chart(o_canvas, {
+      type: 'line',
+      data: {
+        datasets: [{
+          label: 'Power',
+          data: _d,
+          fill: false,
+          borderColor: 'darkgray',
+          tension: 0,
+
+        }],
+      },
+      options: {
+        elements: {
+          point: {
+            radius: 0,
+          },
+        },
+        animation: false,
+        plugins: {
+          title: {
+            display: true,
+            text: title,
+            color: 'lightgray',
+          },
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'second',
+            },
+          },
+          y: {
+            min: 0,
+          },
+        },
+      },
+    });
+    charts[ch_id] = chart;
+  }
+
+  function update_data() {
+    $.ajax('./api/data.php?since='+latest.toString()).done((data) => {
+      var next_latest = latest;
+      for (var ch_id in data) {
+        if (data[ch_id].count == undefined || data[ch_id].count == 0) {
+          continue;
         }
+        var ch = data[ch_id];
+        update_gauges(ch_id, ch.data[0]);
+        update_chart_chartjs(ch_id, ch.data);
+        next_latest = ch.data[0].timestamp;
       }
-      $('#stale').css('opacity', 1.0);
-      setTimeout(update_latest, 1000);
+      if (next_latest - latest > 0) {
+        latest = next_latest;
+        $('#stale').css('opacity', 1.0);
+      }
+      setTimeout(update_data, 1000);
     });
   }
 
@@ -94,12 +172,23 @@ var gauges = [];
       global.Gauge = m.Gauge;
       console.log("gaugeJS loaded...");
     }),
+    import("npm:chart.js/auto").then((m) => {
+      global.Chart = m.default;
+      console.log("chart.js loaded...");
+    }),
     import("npm:jquery").then((m) => {
       global.$ = m;
       console.log("jquery loaded...");
     }),
+    import("npm:moment").then((m) => {
+      global.moment = m;
+      console.log("moment loaded...");
+    }),
+    import("npm:chartjs-adapter-moment").then((m) => {
+      console.log("Loaded chartjs-adapter-moment...");
+    }),
   ]).then(() => {
-    update_latest();
+    update_data();
     update_stale();
   });
 
