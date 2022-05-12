@@ -197,5 +197,5 @@ void Report::mosq_log_cb(struct mosquitto *mosq, void *obj, int level, const cha
     (void)(mosq);
     (void)(obj);
 
-    printf("[%d] %s\n", level, str);
+    printf("MQTT [%d] %s\n", level, str);
 }
