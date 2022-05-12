@@ -81,11 +81,11 @@ void Report::channel_t::push(reading_t reading)
 std::string Report::serialize(reading_t &r) {
     char buf[1024];
     size_t len = snprintf(buf, sizeof(buf),
-        "{\"timestamp\": %ld,"
+        "{\"timestamp\": \"%s\","
         "\"voltage\": %f,"
         "\"current\": %f,"
         "\"power\": %f}",
-        (long int)clock_t::to_time_t(r.timestamp),
+        std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(r.timestamp.time_since_epoch()).count()).c_str(),
         r.voltage,
         r.current,
         r.power);
